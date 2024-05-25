@@ -1,7 +1,7 @@
 # Ultroid - UserBot
 # Copyright (C) 2021-2023 TeamUltroid
 # This file is a part of < https://github.com/TeamUltroid/Ultroid/ >
-# PLease read the GNU Affero General Public License in <https://www.github.com/TeamUltroid/Ultroid/blob/main/LICENSE/>.
+# Please read the GNU Affero General Public License in <https://www.github.com/TeamUltroid/Ultroid/blob/main/LICENSE/>.
 
 FROM theteamultroid/ultroid:main
 
@@ -13,11 +13,18 @@ COPY installer.sh .
 
 RUN bash installer.sh
 
+# Install a lightweight HTTP server
+RUN apt-get update && apt-get install -y curl
+
+# Create a simple HTTP server script
+RUN echo "while true; do echo -e 'HTTP/1.1 200 OK\r\n' | nc -l -p 8080; done" > /root/health_check.sh
+RUN chmod +x /root/health_check.sh
+
 # changing workdir
 WORKDIR "/root/TeamUltroid"
 
-# expose dummy port
+# expose port
 EXPOSE 8080
 
-# start the bot.
-CMD ["bash", "startup"]
+# start the bot and HTTP server
+CMD ["bash", "-c", "bash startup & bash /root/health_check.sh"]
